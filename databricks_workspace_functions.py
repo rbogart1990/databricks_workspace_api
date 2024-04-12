@@ -90,3 +90,25 @@ def get_specific_run(job_id: str, token: str, workspace_url: str, run_index: int
     else:
         # Print an error message if the request failed
         print(f"Error: {response.status_code} - {response.text}")
+
+
+def get_run_details(job_id: str, token: str, workspace_url: str, run_index: int = 0) -> (str, str):
+    """
+    Get the run_id and run_name for a specific job run.
+
+    Parameters:
+        job_id (str): The ID of the job.
+        token (str): Authorization token.
+        workspace_url (str): URL of the workspace.
+        run_index (int): Index of the run to retrieve. Default is 0 (most recent run).
+
+    Returns:
+        Tuple[str, str]: The run_id and run_name of the specified job run.
+    """
+    run_details = get_specific_run(job_id, token, workspace_url, run_index)
+    if run_details:
+        run_id = run_details.get('run_id', '')
+        run_name = run_details.get('run_name', '')
+        return run_id, run_name
+    else:
+        return '', ''
