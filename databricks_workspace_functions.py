@@ -51,17 +51,18 @@ def get_pipeline_job_id_by_name(workspace_url: str, token: str, pipeline_keyword
         return None
 
 
-def get_most_recent_run(job_id: str, token: str, workspace_url: str) -> dict:
+def get_specific_run(job_id: str, token: str, workspace_url: str, run_index: int = 0) -> dict:
     """
-    Get the most recent run object for a specific job.
+    Get a specific run object for a specific job.
 
     Parameters:
         job_id (str): The ID of the job.
         token (str): Authorization token.
         workspace_url (str): URL of the workspace.
+        run_index (int): Index of the run to retrieve. Default is 0 (most recent run).
 
     Returns:
-        dict: The most recent run object.
+        dict: The specified run object.
     """
     # Endpoint for listing runs of a specific job
     endpoint = f"{workspace_url}/api/2.0/jobs/runs/list?job_id={job_id}"
@@ -80,12 +81,12 @@ def get_most_recent_run(job_id: str, token: str, workspace_url: str) -> dict:
         # Get the content of the response
         runs_data = response.json()
         # Check if runs_data contains the list of runs
-        if 'runs' in runs_data and len(runs_data['runs']) > 0:
-            # Get the most recent run (first entry in the list of runs)
-            most_recent_run = runs_data['runs'][0]
-            return most_recent_run
+        if 'runs' in runs_data and len(runs_data['runs']) > run_index:
+            # Get the specified run
+            specified_run = runs_data['runs'][run_index]
+            return specified_run
         else:
-            print("No runs found for the specified job.")
+            print("No runs found for the specified job or invalid run index.")
     else:
         # Print an error message if the request failed
         print(f"Error: {response.status_code} - {response.text}")
