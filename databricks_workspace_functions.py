@@ -5,12 +5,6 @@ from typing import Optional, Tuple
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
-# Replace the placeholders with your Databricks workspace URL and personal access token
-workspace_url = "https://your-databricks-workspace-url"
-token = "your-personal-access-token"
-git_branch = "your-git-branch"
-pipeline_keyword = f"your-pipeline-name {git_branch}"
-
 def get_pipeline_job_id_by_name(workspace_url: str, token: str, pipeline_keyword: str) -> Optional[str]:
     """
     Retrieve the job ID of a Databricks pipeline by searching for a keyword in its name.
