@@ -1,11 +1,20 @@
 import requests
-import json
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Replace the placeholders with your Databricks workspace URL and personal access token
 workspace_url = "https://your-databricks-workspace-url"
 token = "your-personal-access-token"
 git_branch = "your-git-branch"
 pipeline_keyword = f"your-pipeline-name {git_branch}"
+
+import requests
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)  # Set logging level to INFO
+
 
 def get_pipeline_job_id_by_name(workspace_url: str, token: str, pipeline_keyword: str) -> str:
     """
@@ -36,18 +45,19 @@ def get_pipeline_job_id_by_name(workspace_url: str, token: str, pipeline_keyword
     if response.status_code == 200:
         # Parse the JSON response
         jobs_data = response.json()
+
         # Find pipelines containing the keyword in their names
-        pipelines = [job["job_id"] for job in jobs_data["jobs"] if pipeline_keyword in job["settings"].get("name", "")]
+        pipelines = [job["job_id"] for job in jobs_data.get("jobs", []) if pipeline_keyword in job.get("settings", {}).get("name", "")]
+        
+        # Check if any pipelines were found
         if pipelines:
-            # Return the job_id of the first pipeline found
+            logging.info(f"Found pipelines containing the keyword '{pipeline_keyword}'")
             return pipelines[0]
         else:
-            # If no pipelines found, return None
-            print(f"No pipelines found containing the keyword '{pipeline_keyword}'")
+            logging.warning(f"No pipelines found containing the keyword '{pipeline_keyword}'")
             return None
     else:
-        # Print an error message if the request failed
-        print(f"Error: {response.status_code} - {response.text}")
+        logging.error(f"Error: {response.status_code} - {response.text}")
         return None
 
 
@@ -80,15 +90,16 @@ def get_specific_run(job_id: str, token: str, workspace_url: str, run_index: int
     if response.status_code == 200:
         # Get the list of runs
         runs_data = response.json().get("runs", [])
+
         # Check for the specified run
         if len(runs_data) > run_index:
-            specified_run = runs_data[run_index]
-            return specified_run
+            return runs_data[run_index]
         else:
-            print("No runs found for the specified job or invalid run index.")
+            logging.warning("No runs found for the specified job or invalid run index.")
+            return None
     else:
-        # Print an error message if the request failed
-        print(f"Error: {response.status_code} - {response.text}")
+        logging.error(f"Error: {response.status_code} - {response.text}")
+        return None
 
 
 def get_run_details(job_id: str, token: str, workspace_url: str, run_index: int = 0) -> (str, str):
@@ -104,7 +115,11 @@ def get_run_details(job_id: str, token: str, workspace_url: str, run_index: int 
     Returns:
         Tuple[str, str]: The run_id and run_name of the specified job run.
     """
+    # Get the details of the specified run
     run_details = get_specific_run(job_id, token, workspace_url, run_index)
+
+    # Extract run_id and run_name from run_details
     run_id = run_details.get('run_id', '') if run_details else ''
     run_name = run_details.get('run_name', '') if run_details else ''
+
     return run_id, run_name
