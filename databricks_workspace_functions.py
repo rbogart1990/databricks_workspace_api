@@ -37,10 +37,10 @@ def get_pipeline_job_id_by_name(workspace_url: str, token: str, pipeline_keyword
         # Parse the JSON response
         jobs_data = response.json()
         # Find pipelines containing the keyword in their names
-        pipelines = [job for job in jobs_data["jobs"] if pipeline_keyword in job["settings"]["name"]]
+        pipelines = [job["job_id"] for job in jobs_data["jobs"] if pipeline_keyword in job["settings"].get("name", "")]
         if pipelines:
             # Return the job_id of the first pipeline found
-            return pipelines[0]['job_id']
+            return pipelines[0]
         else:
             # If no pipelines found, return None
             print(f"No pipelines found containing the keyword '{pipeline_keyword}'")
@@ -78,12 +78,11 @@ def get_specific_run(job_id: str, token: str, workspace_url: str, run_index: int
 
     # Check if the request was successful (status code 200)
     if response.status_code == 200:
-        # Get the content of the response
-        runs_data = response.json()
-        # Check if runs_data contains the list of runs
-        if 'runs' in runs_data and len(runs_data['runs']) > run_index:
-            # Get the specified run
-            specified_run = runs_data['runs'][run_index]
+        # Get the list of runs
+        runs_data = response.json().get("runs", [])
+        # Check for the specified run
+        if len(runs_data) > run_index:
+            specified_run = runs_data[run_index]
             return specified_run
         else:
             print("No runs found for the specified job or invalid run index.")
@@ -106,9 +105,6 @@ def get_run_details(job_id: str, token: str, workspace_url: str, run_index: int 
         Tuple[str, str]: The run_id and run_name of the specified job run.
     """
     run_details = get_specific_run(job_id, token, workspace_url, run_index)
-    if run_details:
-        run_id = run_details.get('run_id', '')
-        run_name = run_details.get('run_name', '')
-        return run_id, run_name
-    else:
-        return '', ''
+    run_id = run_details.get('run_id', '') if run_details else ''
+    run_name = run_details.get('run_name', '') if run_details else ''
+    return run_id, run_name
